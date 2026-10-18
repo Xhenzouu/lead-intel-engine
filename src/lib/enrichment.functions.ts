@@ -5,8 +5,8 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/parallel";
 export const ICP_DEFINITION = "B2B SaaS, 10-200 employees, recent funding or product launch";
 
 function headers() {
-  const lovable = process.env.LOVABLE_API_KEY;
-  const conn = process.env.PARALLEL_API_KEY;
+  const lovable = process.env['LOVABLE_API_KEY'];
+  const conn = process.env['PARALLEL_API_KEY'];
   if (!lovable) throw new Error("LOVABLE_API_KEY is not configured");
   if (!conn) throw new Error("PARALLEL_API_KEY is not configured");
   return {
@@ -44,7 +44,7 @@ const outputSchema = {
 const domainRe = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 
 function normalize(d: string) {
-  return d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+  return d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0] ?? "";
 }
 
 export const startEnrichment = createServerFn({ method: "POST" })
