@@ -50,7 +50,7 @@ function normalize(d: string) {
 export const startEnrichment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ domains: z.array(z.string()).min(1).max(10) }).parse(d))
   .handler(async ({ data }) => {
-    const domains = Array.from(new Set(data.domains.map(normalize))).filter((d) => domainRe.test(d)).slice(0, 10);
+    const domains: string[] = Array.from(new Set<string>(data.domains.map(normalize))).filter((d) => domainRe.test(d)).slice(0, 10);
     if (!domains.length) throw new Error("No valid domains provided");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
