@@ -140,7 +140,7 @@ function Index() {
   );
 }
 
-function ConfidenceBadge({ level }: { level?: string | null }) {
+function ConfidenceBadge({ level }: { level?: string | null | undefined }) {
   const l = (level ?? "unknown").toLowerCase();
   const cls = l === "high" ? "border-success/40 text-success" : l === "medium" ? "border-warning/40 text-warning" : l === "low" ? "border-destructive/40 text-destructive" : "border-border text-muted-foreground";
   return <span className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${cls}`}>{l}</span>;
