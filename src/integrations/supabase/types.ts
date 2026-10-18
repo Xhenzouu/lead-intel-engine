@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      enrichment_runs: {
+        Row: {
+          basis: Json | null
+          citations: Json | null
+          company_name: string | null
+          created_at: string
+          description: string | null
+          domain: string
+          error: string | null
+          funding_info: string | null
+          headcount_range: string | null
+          icp_score: number | null
+          id: string
+          industry: string | null
+          key_contacts: Json | null
+          parallel_run_id: string | null
+          score_reasoning: string | null
+          status: string
+        }
+        Insert: {
+          basis?: Json | null
+          citations?: Json | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          domain: string
+          error?: string | null
+          funding_info?: string | null
+          headcount_range?: string | null
+          icp_score?: number | null
+          id?: string
+          industry?: string | null
+          key_contacts?: Json | null
+          parallel_run_id?: string | null
+          score_reasoning?: string | null
+          status?: string
+        }
+        Update: {
+          basis?: Json | null
+          citations?: Json | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string
+          error?: string | null
+          funding_info?: string | null
+          headcount_range?: string | null
+          icp_score?: number | null
+          id?: string
+          industry?: string | null
+          key_contacts?: Json | null
+          parallel_run_id?: string | null
+          score_reasoning?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
