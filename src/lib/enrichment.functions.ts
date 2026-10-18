@@ -84,6 +84,21 @@ export const startEnrichment = createServerFn({ method: "POST" })
     return { ids: rows!.map((r) => r.id) };
   });
 
+// Returns only the runs whose (unguessable) IDs the caller already holds from this session.
+export const getRuns = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ ids: z.array(z.string().uuid()).max(100) }).parse(d))
+  .handler(async ({ data }) => {
+    if (!data.ids.length) return [];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("enrichment_runs")
+      .select("*")
+      .in("id", data.ids)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error("Could not load runs");
+    return rows ?? [];
+  });
+
 type Basis = { field: string; confidence?: string | null; citations?: { url: string; title?: string }[] };
 
 export const pollEnrichment = createServerFn({ method: "POST" })

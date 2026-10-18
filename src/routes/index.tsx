@@ -3,8 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Radar, Loader2, ExternalLink, Sparkles, AlertTriangle, Users, Link2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { startEnrichment, pollEnrichment, ICP_DEFINITION } from "@/lib/enrichment.functions";
+import { startEnrichment, pollEnrichment, getRuns, ICP_DEFINITION } from "@/lib/enrichment.functions";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Run = Tables<"enrichment_runs">;
@@ -33,36 +32,36 @@ function Index() {
   const [err, setErr] = useState<string | null>(null);
   const start = useServerFn(startEnrichment);
   const poll = useServerFn(pollEnrichment);
+  const fetchRuns = useServerFn(getRuns);
 
   const domains = useMemo(() => text.split(/\s|,/).map((s) => s.trim()).filter(Boolean), [text]);
 
+  const SESSION_KEY = "signal_run_ids";
+  const readIds = (): string[] => {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? "[]"); } catch { return []; }
+  };
+  const refresh = async () => {
+    const ids = readIds();
+    const data = await fetchRuns({ data: { ids } });
+    setRuns(data as Run[]);
+  };
+
   useEffect(() => {
-    supabase.from("enrichment_runs").select("*").order("created_at", { ascending: false }).limit(50)
-      .then(({ data }) => { setRuns(data ?? []); setLoaded(true); });
-    const ch = supabase
-      .channel("enrichment_runs")
-      .on("postgres_changes", { event: "*", schema: "public", table: "enrichment_runs" }, (p) => {
-        const row = p.new as Run;
-        if (!row?.id) return;
-        setRuns((prev) => {
-          const i = prev.findIndex((r) => r.id === row.id);
-          if (i === -1) return p.eventType === "INSERT" ? [row, ...prev] : prev;
-          const next = [...prev]; next[i] = { ...next[i], ...row }; return next;
-        });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    refresh().catch(() => {}).finally(() => setLoaded(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Poll Parallel for in-flight runs; results land via realtime.
+  // Poll Parallel for in-flight runs, then refresh this session's runs.
   const runsRef = useRef(runs); runsRef.current = runs;
   useEffect(() => {
-    const t = setInterval(() => {
-      runsRef.current.filter((r) => r.status === "running").forEach((r) => {
-        poll({ data: { id: r.id } }).catch(() => {});
-      });
+    const t = setInterval(async () => {
+      const active = runsRef.current.filter((r) => r.status === "running" || r.status === "pending");
+      if (!active.length) return;
+      await Promise.all(active.filter((r) => r.status === "running").map((r) => poll({ data: { id: r.id } }).catch(() => {})));
+      refresh().catch(() => {});
     }, 6000);
     return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poll]);
 
   async function run() {
@@ -71,10 +70,10 @@ function Index() {
     if (domains.length > 10) { setErr("Up to 10 domains per run."); return; }
     setSubmitting(true);
     try {
-      await start({ data: { domains } });
+      const { ids } = await start({ data: { domains } });
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify([...ids, ...readIds()].slice(0, 100)));
       setText("");
-      const { data } = await supabase.from("enrichment_runs").select("*").order("created_at", { ascending: false }).limit(50);
-      if (data) setRuns(data);
+      await refresh();
     } catch (e) {
       setErr((e as Error).message);
     } finally { setSubmitting(false); }
