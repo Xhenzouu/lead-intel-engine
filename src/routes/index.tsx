@@ -86,7 +86,7 @@ function Index() {
           <Radar className="h-4 w-4" /> Signal
         </div>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Lead intelligence, <span className="text-neon-gradient">on demand.</span>
+          Lead intelligence, <span className="text-primary">on demand.</span>
         </h1>
       </header>
 
