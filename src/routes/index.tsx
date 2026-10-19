@@ -86,7 +86,7 @@ function Index() {
           <Radar className="h-4 w-4" /> Signal
         </div>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Lead intelligence, <span className="text-neon-gradient">on demand.</span>
+          Lead intelligence, <span className="text-primary">on demand.</span>
         </h1>
       </header>
 
@@ -99,7 +99,7 @@ function Index() {
           onChange={(e) => setText(e.target.value)}
           rows={5}
           placeholder={"linear.app\nvercel.com\nposthog.com"}
-          className="w-full resize-y rounded-xl border border-input bg-background/60 p-4 font-mono text-sm outline-none transition focus:border-primary focus:shadow-glow"
+          className="w-full resize-y rounded-xl border border-input bg-background/60 p-4 font-mono text-sm outline-none transition focus:border-primary"
         />
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
@@ -108,7 +108,7 @@ function Index() {
           <button
             onClick={run}
             disabled={submitting || !domains.length}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-neon-gradient px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:brightness-110 disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-40"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Run Enrichment{domains.length ? ` (${Math.min(domains.length, 10)})` : ""}
@@ -121,7 +121,7 @@ function Index() {
       <section className="mt-10">
         {loaded && runs.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
-            <div className="relative mb-6 grid h-24 w-24 place-items-center rounded-full glass shadow-glow">
+            <div className="relative mb-6 grid h-24 w-24 place-items-center rounded-full glass">
               <Radar className="h-10 w-10 text-primary" />
               <span className="absolute inset-0 animate-ping rounded-full border border-primary/30" />
             </div>
@@ -170,7 +170,7 @@ function RunCard({ run }: { run: Run }) {
         </div>
         {run.status === "complete" && score != null && (
           <div className="shrink-0 text-right">
-            <div className="text-neon-gradient font-display text-4xl font-bold leading-none">{score}</div>
+            <div className="text-primary font-display text-4xl font-bold leading-none">{score}</div>
             <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">ICP fit</div>
           </div>
         )}
