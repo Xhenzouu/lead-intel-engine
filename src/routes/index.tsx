@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Radar, Loader2, ExternalLink, Sparkles, AlertTriangle, Users, Link2 } from "lucide-react";
 import { startEnrichment, pollEnrichment, getRuns, ICP_DEFINITION } from "@/lib/enrichment.functions";
 import type { Tables } from "@/integrations/supabase/types";
+import { RunSkeleton } from "@/components/run-skeleton";
+import { CopySummaryButton } from "@/components/copy-summary-button";
 
 type Run = Tables<"enrichment_runs">;
 type Contact = { name: string; role?: string; confidence?: string | null; source_url?: string | null };
@@ -130,7 +132,11 @@ function Index() {
         ) : (
           <div className="flex flex-col gap-5">
             <AnimatePresence initial={false}>
-              {runs.map((r) => <RunCard key={r.id} run={r} />)}
+              {runs.map((r) =>
+                r.status === "complete" || r.status === "failed"
+                  ? <RunCard key={r.id} run={r} />
+                  : <RunSkeleton key={r.id} domain={r.domain} />
+              )}
             </AnimatePresence>
           </div>
         )}
@@ -148,7 +154,6 @@ function ConfidenceBadge({ level }: { level?: string | null | undefined }) {
 function host(u: string) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } }
 
 function RunCard({ run }: { run: Run }) {
-  const busy = run.status === "pending" || run.status === "running";
   const contacts = (run.key_contacts as Contact[] | null) ?? [];
   const citations = (run.citations as Citation[] | null) ?? [];
   const score = run.icp_score;
@@ -165,30 +170,21 @@ function RunCard({ run }: { run: Run }) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-xs text-primary">{run.domain}</p>
-          <h2 className="mt-1 truncate text-xl font-bold">{run.company_name ?? (busy ? "Researching…" : run.domain)}</h2>
+          <h2 className="mt-1 truncate text-xl font-bold">{run.company_name ?? run.domain}</h2>
           {run.description && <p className="mt-1 text-sm text-muted-foreground">{run.description}</p>}
         </div>
-        {run.status === "complete" && score != null && (
-          <div className="shrink-0 text-right">
-            <div className="text-primary font-display text-4xl font-bold leading-none">{score}</div>
-            <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">ICP fit</div>
+        {run.status === "complete" && (
+          <div className="flex shrink-0 items-start gap-2">
+            <CopySummaryButton run={run} />
+            {score != null && (
+              <div className="text-right">
+                <div className="text-primary font-display text-4xl font-bold leading-none">{score}</div>
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">ICP fit</div>
+              </div>
+            )}
           </div>
         )}
-        {busy && (
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 px-3 py-1 text-xs text-primary">
-            <Loader2 className="h-3 w-3 animate-spin" /> {run.status}
-          </span>
-        )}
       </div>
-
-      {busy && (
-        <div className="mt-5 space-y-2">
-          <div className="shimmer h-3 w-3/4 rounded" />
-          <div className="shimmer h-3 w-1/2 rounded" />
-          <div className="shimmer h-3 w-2/3 rounded" />
-          <p className="pt-1 text-xs text-muted-foreground">Deep web research usually takes 1–5 minutes.</p>
-        </div>
-      )}
 
       {run.status === "failed" && (
         <p className="mt-4 flex items-start gap-2 text-sm text-destructive">
